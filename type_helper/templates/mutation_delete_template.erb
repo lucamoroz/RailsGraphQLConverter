@@ -1,0 +1,17 @@
+module Mutations
+  module <%= class_name %>Mutations
+    class <%= class_name %>Delete < Base::BaseMutation
+      argument :<%= file_name %>_id, ID, required: true
+
+      type Types::OperationReturnType
+
+      def resolve(<%= file_name %>_id:)
+        <%= @resolver_head %>
+        <%= file_name %>.destroy!
+        {
+        success: 'ok'
+        }
+      end
+    end
+  end
+end
