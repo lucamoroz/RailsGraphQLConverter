@@ -6,7 +6,7 @@ module Mutations
       type Types::OperationReturnType
 
       def resolve(<%= file_name %>_id:)
-        <%= @resolver_head %>
+        <%= file_name %> = <%= class_name%>.find(<%=file_name%>_id)
         <%= file_name %>.destroy!
         {
         success: 'ok'

@@ -6,7 +6,6 @@ module Mutations
       type Types::<%= class_name %>Type
 
       def resolve(input:)
-        <%= @resolver_head %>
         <%= file_name %>.create!(input.to_h)
       end
     end

@@ -7,7 +7,7 @@ module Mutations
       type Types::<%= class_name %>Type
 
       def resolve(<%= file_name %>_id:, input:)
-        <%= @resolver_head %>
+        <%= file_name %> = <%= class_name%>.find(<%=file_name%>_id)
         <%= file_name %>.update!(input.to_h)
       end
     end
