@@ -1,0 +1,7 @@
+module Types
+  module Enums
+    class <%= @enum_name.camelize %>Enum < Base::BaseEnum
+      <%= @rows.join("\n\t\t\t") %>
+    end
+  end
+end

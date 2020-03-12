@@ -1,5 +1,6 @@
 require_relative 'scalar_component'
 require_relative 'type_component'
+require_relative 'enum_holder'
 require_relative 'arguments/scalar_argument'
 require_relative 'arguments/type_argument'
 require_relative 'fields/scalar_field'
@@ -18,9 +19,25 @@ module Components::ComponentsHelper
     components + get_type_arguments(model)
   end
 
+  def enum_holders_for(model)
+    res = []
+    model.columns.collect do |col|
+      res.append Components::EnumHolder.new(model, col) if Components::EnumHolder.enum? model, col
+    end
+    res
+  end
+
+  # Get dependencies class names
   def dependencies_for(model)
-    # todo
-    Set.new
+    dependencies = Set.new
+    # Each association is a dependency
+    model.reflect_on_all_associations.each do |ass|
+      relation_name = ass.name.to_s
+      class_name = ass.options[:class_name] || relation_name.singularize.camelize
+
+      dependencies.add? class_name
+    end
+    dependencies
   end
 
   private

@@ -1,11 +1,7 @@
-require_relative 'graphql_model_helper'
 require_relative 'components/components_helper'
 
 class Rails::TypeHelperGenerator < Rails::Generators::NamedBase
-  # todo check for graphql dependencies - see https://guides.rubyonrails.org/generators.html#gem
   # The methods defined here are executed sequentially
-
-  # todo complete enums
 
   source_root File.expand_path('templates', __dir__)
 
@@ -14,6 +10,8 @@ class Rails::TypeHelperGenerator < Rails::Generators::NamedBase
   class_option :no_input, type: :boolean, default: false, desc: "Skip input generation"
   class_option :no_mutations, type: :boolean, default: false, desc: "Skip mutations generation"
   class_option :no_dependencies, type: :boolean, default: false, desc: "Skip dependencies generation"
+
+  BASE_TYPE_PATH = "app/graphql/types/base/"
 
   def get_model
     @model = class_name.singularize.classify.constantize
@@ -28,10 +26,6 @@ class Rails::TypeHelperGenerator < Rails::Generators::NamedBase
     end
   end
 
-  def prepare_converter
-    @converter = GraphqlModelHelper.new(@model)
-  end
-
   def create_type_file
     return if options["no_type"]
 
@@ -42,20 +36,11 @@ class Rails::TypeHelperGenerator < Rails::Generators::NamedBase
   def create_enum_files
     return if options["no_enums"]
 
-#     @converter.enum_names.each do |enum_name|
-#       create_file "app/graphql/types/enums/#{enum_name}_type.rb", <<-FILE
-# module Types
-#   module Enums
-#     class #{enum_name.camelize}Type < Types::Base::BaseEnum
-#       #{@converter.enum_values_for(enum_name).join("\n\t\t\t")}
-#     end
-#   end
-# end
-#       FILE
-#     end
-    @enum_file_name = "test"
-    @rows = "enum_values..."
-    template "enum_template.erb", "app/graphql/types/enums/#{"aaa"}_type.rb"
+    Components::ComponentsHelper.enum_holders_for(@model).each do |enum_h|
+      @enum_name = enum_h.name
+      @rows = enum_h.enum_values
+      template "enum_template.erb", "app/graphql/types/enums/#{@enum_name}_enum.rb"
+    end
   end
 
   def create_input_file
@@ -84,7 +69,7 @@ class Rails::TypeHelperGenerator < Rails::Generators::NamedBase
   end
 
   def get_dependencies
-    @dependencies = @converter.dependencies
+    @dependencies = Components::ComponentsHelper.dependencies_for(@model)
     puts "\nFound dependencies: #{@dependencies}"
   end
 
@@ -113,16 +98,38 @@ class Rails::TypeHelperGenerator < Rails::Generators::NamedBase
     end
   end
 
-
   def check_operations_return_type
     return if options["no_mutations"] or options["no_dependencies"]
 
     unless File.exist?("app/graphql/types/operation_return_type.rb")
       if yes? "The generated delete mutations are based on the class OperationReturnType and it seems you don't have it in your project. Do you want to generate it?"
-        copy_file "operation_return_type.rb", "app/graphql/types/operation_return_type.rb"
+        copy_file "dependencies/operation_return_type.rb", "app/graphql/types/operation_return_type.rb"
+      end
+    end
+  end
+
+  def check_base_mutation_dependencies
+    return if options["no_mutations"] or options["no_dependencies"]
+
+    unless File.exist?("app/graphql/mutations/base/base_mutation.rb")
+      if yes? "The generated delete mutations are based on the class BaseMutation and it seems you don't have it in your project. Do you want to generate it?"
+        copy_file "dependencies/base_mutation.rb", "app/graphql/mutations/base/base_mutation.rb"
+      end
+    end
+  end
+
+  def check_base_type_dependencies
+    return if options["no_dependencies"]
+
+    base_dependencies = %w(base_argument.rb base_enum.rb base_field.rb base_input_object.rb base_object.rb)
+
+    base_dependencies.each do |dep|
+      unless File.exist?(BASE_TYPE_PATH + dep)
+        if yes? "The generated delete mutations are based on #{dep} and it seems you don't have it in your project. Do you want to generate it?"
+          copy_file "dependencies/" + dep, BASE_TYPE_PATH + dep
+        end
       end
     end
 
   end
-
 end

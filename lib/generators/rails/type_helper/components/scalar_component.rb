@@ -1,4 +1,5 @@
 module Components
+  # ScalarComponent includes enum types
   class ScalarComponent
     ENUM_SUFFIX = "Types::Enums::"
 
