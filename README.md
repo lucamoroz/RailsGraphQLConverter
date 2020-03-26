@@ -16,6 +16,8 @@ This will create:
 - mutations files (create, update, delete)
 - input file
 
+Note that you need a functioning database connection.
+
 ## Dependencies
 The program will automatically find any relation asking you to generate the files as above. 
 You can skip this step by adding the argument --no-dependencies, eg: `rails generate type_helper StudentsClass --no-dependencies`
