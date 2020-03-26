@@ -1,0 +1,13 @@
+module Mutations
+  module <%= class_name %>Mutations
+    class <%= class_name %>Create < Base::BaseMutation
+      argument :input, Types::Inputs::<%= class_name %>Input, required: true
+
+      type Types::<%= class_name %>Type
+
+      def resolve(input:)
+        <%= file_name %>.create!(input.to_h)
+      end
+    end
+  end
+end
